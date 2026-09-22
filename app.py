@@ -74,9 +74,11 @@ class ImageApp:
 
         self.channels_tab.reset()
         self.gray_tab.reset()
+        self.hsv_tab.reset()
 
         self.channels_tab.run_channels()
         self.gray_tab.run_gray()
+        self.hsv_tab.reset_sliders()
 
     def save_result(self):
         if self.current_result is None:
