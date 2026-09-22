@@ -73,8 +73,10 @@ class ImageApp:
         self.set_status(f"Загружено: {path}", "black")
 
         self.channels_tab.reset()
+        self.gray_tab.reset()
 
         self.channels_tab.run_channels()
+        self.gray_tab.run_gray()
 
     def save_result(self):
         if self.current_result is None:
