@@ -176,15 +176,22 @@ class HsvTab(BaseTab):
 
         self.app.hsv = self.rgb_to_hsv(self.app.original_rgb)
 
+        S = self.app.hsv[:, :, 1]
+        V = self.app.hsv[:, :, 2]
+        self.current_sat = float(np.mean(S))
+        self.current_val = float(np.mean(V))
+
         self.lbl_hsv_orig.config(
             image=to_tk_image(self.app, self.app.original_rgb)
         )
         self.lbl_hsv_res.config(image="")
 
     def reset_sliders(self):
+        if self.app.hsv is None:
+            return
         self.hue_var.set(0)
-        self.sat_var.set(100)
-        self.val_var.set(100)
+        self.sat_var.set(int(round(self.current_sat * 100)))
+        self.val_var.set(int(round(self.current_val * 100)))
         self.update_hsv()
 
     def update_hsv(self):
@@ -198,13 +205,18 @@ class HsvTab(BaseTab):
         V = hsv[:, :, 2]
 
         H = (H + self.hue_var.get()) % 360.0
-        S = np.clip(S * self.sat_var.get() / 100.0, 0.0, 1.0)
-        V = np.clip(V * self.val_var.get() / 100.0, 0.0, 1.0)
+
+        S_target = self.sat_var.get() / 100.0
+        V_target = self.val_var.get() / 100.0
+
+        S_scale = S_target / self.current_sat if self.current_sat > 1e-6 else 1.0
+        V_scale = V_target / self.current_val if self.current_val > 1e-6 else 1.0
+
+        S = np.clip(S * S_scale, 0.0, 1.0)
+        V = np.clip(V * V_scale, 0.0, 1.0)
 
         hsv_result = np.dstack((H, S, V))
         rgb_result = self.hsv_to_rgb(hsv_result)
 
         self.app.current_result = rgb_result
-        self.lbl_hsv_res.config(
-            image=to_tk_image(self.app, rgb_result)
-        )
+        self.lbl_hsv_res.config(image=to_tk_image(self.app, rgb_result))
